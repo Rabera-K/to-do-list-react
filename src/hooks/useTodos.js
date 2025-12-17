@@ -1,5 +1,5 @@
 import {useState, useEffect, useCallback} from 'react';
-import * as todoService from '../services/todos.js';
+import {getTodos, createTodo, updateTodo, deleteTodo } from '../services/todos.js';
 // import dateUtils from'../utils/dateUtils';
 
 function useTodos(){
@@ -11,7 +11,7 @@ function useTodos(){
 const fetchTodos=useCallback(async () => {
     try{
         setLoading(true);
-    const tasksData = await todoService.getTodos();
+    const tasksData = await getTodos();
       
       const transformedTasks = tasksData.map((task) => ({
         ...task,
@@ -40,7 +40,7 @@ const fetchTodos=useCallback(async () => {
         time: todoData.time ? dateUtils.timeStringToTimestamp(todoData.time, todoData.date) : null,
       };
 
-      const savedTask = await todoService.createTodo(xanoTask);
+      const savedTask = await createTodo(xanoTask);
       
       const newTodo = {
         ...savedTask,
@@ -56,7 +56,7 @@ const fetchTodos=useCallback(async () => {
     }
   }, []);
 
-  const updateTodo = useCallback(async (id, updates) => {
+  const updateTodoHandler = useCallback(async (id, updates) => {
     try {
       const xanoUpdates = {};
       if (updates.title !== undefined) xanoUpdates.title = updates.title;
@@ -69,7 +69,7 @@ const fetchTodos=useCallback(async () => {
           : null;
       }
 
-      const updatedTask = await todoService.updateTodo(id, xanoUpdates);
+      const updatedTask = await updateTodo(id, xanoUpdates);
       
       const transformedTask = {
         ...updatedTask,
@@ -89,9 +89,9 @@ const fetchTodos=useCallback(async () => {
     }
   }, []);
 
-  const deleteTodo = useCallback(async (id) => {
+  const deleteTodoHandler = useCallback(async (id) => {
     try {
-      await todoService.deleteTodo(id);
+      await deleteTodo(id);
       setTodos(prev => prev.filter(todo => todo.id !== id));
     } catch (err) {
       setError(err.message);
@@ -110,7 +110,7 @@ const fetchTodos=useCallback(async () => {
     } catch (err) {
       console.error("Failed to update todo:", err);
     }
-  }, [todos, updateTodo]);
+  }, [todos, updateTodoHandler]);
 
   useEffect(() => {
     fetchTodos();
@@ -121,8 +121,8 @@ const fetchTodos=useCallback(async () => {
     loading,
     error,
     addTodo,
-    updateTodo,
-    deleteTodo,
+    updateTodo: updateTodoHandler,
+    deleteTodo: deleteTodoHandler,
     toggleTodoCompletion,
     refetch: fetchTodos,
   };

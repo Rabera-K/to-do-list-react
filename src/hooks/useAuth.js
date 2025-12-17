@@ -1,6 +1,6 @@
 import{useState, useCallback} from 'react';
 import {useNavigate}from 'react-router-dom';
-import * as authService from '../services/auth';
+import { login, signup } from '../services/auth';
 
 function useAuth(){
     const[user, setUser]=useState(()=> {
@@ -13,12 +13,12 @@ const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const login = useCallback(async (email, password) => {
+  const loginHandler = useCallback(async (email, password) => {
     setLoading(true);
     setError(null);
     
     try {
-      const data = await authService.login(email, password);
+      const data = await login(email, password);
       
       localStorage.setItem("token", data.authToken || data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
@@ -33,12 +33,12 @@ const [loading, setLoading] = useState(false);
     }
   }, []);
 
-  const signup = useCallback(async (userData) => {
+  const signupHandler = useCallback(async (userData) => {
     setLoading(true);
     setError(null);
     
     try {
-      await authService.signup(userData);
+      await signup(userData);
       return { success: true };
     } catch (err) {
       setError(err.message);
@@ -59,8 +59,8 @@ const [loading, setLoading] = useState(false);
     user,
     loading,
     error,
-    login,
-    signup,
+    login: loginHandler,
+    signup: signupHandler,
     logout,
     isAuthenticated: !!user,
   };
