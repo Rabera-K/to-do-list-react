@@ -1,6 +1,6 @@
 import {useState, useEffect, useCallback} from 'react';
-import {getTodo, createTodo, updateTodo, deleteTodo} from '../services/todos.js';
-import dateUtils from'../utils/dateUtils';
+import * as todoService from '../services/todos.js';
+// import dateUtils from'../utils/dateUtils';
 
 function useTodos(){
     const[todos, setTodos]=useState([]);
@@ -8,7 +8,7 @@ function useTodos(){
     const [error, setError]=useState(null);
 
 
-const fetchTodos=useCallback(sync ()=>{
+const fetchTodos=useCallback(async () => {
     try{
         setLoading(true);
     const tasksData = await todoService.getTodos();
@@ -128,4 +128,4 @@ const fetchTodos=useCallback(sync ()=>{
   };
 }
 
-export default useTodo;
+export default useTodos;

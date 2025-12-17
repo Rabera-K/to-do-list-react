@@ -1,6 +1,6 @@
 import{useState, useCallback} from 'react';
-import {usenavigate}from 'react-router-dom';
-import{signup, login} from '../services/auth';
+import {useNavigate}from 'react-router-dom';
+import * as authService from '../services/auth';
 
 function useAuth(){
     const[user, setUser]=useState(()=> {

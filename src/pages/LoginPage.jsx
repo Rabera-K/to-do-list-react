@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {link} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {useAuthContext} from '../context/AuthContext';
 import '../styles/validation.css';
 
