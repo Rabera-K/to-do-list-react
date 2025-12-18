@@ -31,10 +31,41 @@ function useAuth() {
 
       try {
         const data = await login(email, password);
+        //debug
+        console.log("Login response:", data);
 
-        localStorage.setItem("token", data.authToken || data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        setUser(data.user);
+        const token = data.authToken;
+        const userId = data.user_id;
+
+        if (!token || !userId) {
+          throw new Error("Ivalid response from server");
+        }
+
+        // Save token and user_id
+        localStorage.setItem("token", token);
+        localStorage.setItem("user_id", userId.toString());
+
+        //  fetch the complete user details
+        const userResponse = await fetch(
+          `https://x8ki-letl-twmt.n7.xano.io/api:g9e8m6-t/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch user details");
+        }
+
+        const userData = await userResponse.json();
+        console.log("User details:", userData);
+
+        // Save complete user object
+        localStorage.setItem("user", JSON.stringify(userData));
+        setUser(userData);
 
         // line to navigate to dashboard after successful login...
         navigate("/dashboard");
