@@ -8,7 +8,7 @@ function Header({
 }) {
     const {user} = useAuthContext();
 
-    const formatDate= (date)= {
+    const formatDate= (date)=> {
         const options = {weekday: 'long', month: 'short', day: 'numeric'};
         return date.toLocaleDareString('en-US', options);
     };
