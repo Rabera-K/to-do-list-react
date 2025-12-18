@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
 import dateUtils  from '../../utils/dateUtils';
 
-export default function CalendarMini({ selectedDate, onDateSelect }) {
+function CalendarMini({ 
+  selectedDate, 
+  onDateSelect 
+}) {
   const [days, setDays] = useState([]);
+  const calendarRef = useRef(null);
 
   useEffect(() => {
     generateCalendarDays();
   }, [selectedDate]);
+
+  useEffect(() => {
+    if (calendarRef.current) {
+      scrollToCurrentDate();
+    }
+  }, [days]);
 
   const generateCalendarDays = () => {
     const today = new Date();
@@ -45,13 +55,45 @@ export default function CalendarMini({ selectedDate, onDateSelect }) {
     setDays(calendarDays);
   };
 
+  const scrollToCurrentDate = () => {
+    if (!calendarRef.current) return;
+    
+    const today = new Date();
+    const dayElements = calendarRef.current.querySelectorAll('.day');
+    
+    for (let i = 0; i < dayElements.length; i++) {
+      const day = dayElements[i];
+      const dayNumber = parseInt(day.querySelector('.day-number').textContent);
+      const isOtherMonth = day.classList.contains('other-month');
+      
+      if (dayNumber === today.getDate() && !isOtherMonth) {
+        const scrollLeft = day.offsetLeft - calendarRef.current.offsetWidth / 2 + day.offsetWidth / 2;
+        calendarRef.current.scrollLeft = scrollLeft;
+        break;
+      }
+    }
+  };
+
+  const enableHorizontalScroll = (e) => {
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      calendarRef.current.scrollLeft += e.deltaY;
+    }
+  };
+
   return (
     <div className="calendar-container">
-      <div className="calendar-days" id="calendar-days">
+      <div 
+        className="calendar-days" 
+        id="calendar-days"
+        ref={calendarRef}
+        onWheel={enableHorizontalScroll}
+      >
         {days.map((day, index) => (
           <div
             key={index}
-            className={`day ${day.isOtherMonth ? 'other-month' : ''} ${dateUtils.isSameDay(day.date, selectedDate) ? 'selected' : ''}`}
+            className={`day ${day.isOtherMonth ? 'other-month' : ''} 
+              ${dateUtils.isSameDay(day.date, selectedDate) ? 'selected' : ''}`}
             onClick={() => onDateSelect(day.date)}
           >
             <span className="day-name">{dateUtils.getDayName(day.date)}</span>
@@ -62,3 +104,4 @@ export default function CalendarMini({ selectedDate, onDateSelect }) {
     </div>
   );
 }
+export default CalendarMini;

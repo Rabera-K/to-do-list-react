@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 // import Header from '../components/layout/Header';
 // import CalendarMini from '../components/calendar/CalendarMini';
-// import TodoList from '../components/todos/TodoList';
-// import CompletedSection from '../components/todos/CompletedSection';
-// import EmptyState from '../components/todos/EmptyState';
-// import AddTodoButton from '../components/todos/AddTodoButton';
-// import TodoModal from '../components/todos/TodoModal';
+import TodoList from '../components/todos/TodoList';
+import CompletedSection from '../components/todos/CompletedSection';
+import EmptyState from '../components/todos/EmptyState';
+import AddTodoButton from '../components/todos/AddTodoButton';
+import TodoModal from '../components/todos/TodoModal';
 // import CalendarModal from '../components/calendar/CalendarModal';
 import  useTodos  from '../hooks/useTodos';
 import useAuth from '../hooks/useAuth';
