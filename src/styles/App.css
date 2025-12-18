@@ -303,6 +303,7 @@ h2 {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 .todo-text,
 .task-description,
@@ -391,8 +392,8 @@ summary::-webkit-details-marker {
 }
 
 /* Modal styles */
-.modal {
-  display: none;
+.todo-modal {
+  display: flex;
   position: fixed;
   top: 0;
   left: 0;
@@ -403,8 +404,12 @@ summary::-webkit-details-marker {
   justify-content: center;
   align-items: center;
 }
+/* .modal > * {
+  display: block;
+  flex: none;
+} */
 
-.modal-content {
+.todo-modal-content {
   background-color: white;
   padding: 30px;
   border-radius: 10px;
@@ -415,25 +420,33 @@ summary::-webkit-details-marker {
   overflow-y: auto;
 }
 
-.modal h3 {
+.todo-modal h3 {
   margin-bottom: 20px;
   color: var(--text-primary);
   font-size: 2rem;
 }
+/* .todo-task-form {
+  
+} */
 
-.form-group {
+.todo-form-group {
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
-.form-group label {
-  display: block;
+.todo-form-group label {
+  display: flex;
+  flex-direction: column;
+  align-self: center;
   margin-bottom: 5px;
   color: var(--text-primary);
   font-weight: 600;
+  background: none;
 }
 
-.form-group input,
-.form-group textarea {
+.todo-form-group input,
+.todo-form-group textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
@@ -441,7 +454,7 @@ summary::-webkit-details-marker {
   font-family: inherit;
 }
 
-.form-group textarea {
+.todo-form-group textarea {
   height: 80px;
   resize: vertical;
 }

@@ -6,32 +6,43 @@ async function request(endpoint, options = {}) {
     "Content-Type": "application/json",
     ...options.headers,
   };
-  
+
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
-  
+
   const response = await fetch(`${XANO_TODO_URL}${endpoint}`, {
     ...options,
     headers,
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || "API request failed");
   }
-  
+
   return response.json();
 }
 
 export async function getTodos() {
-  return request("/todo");
+  const user = JSON.parse(localStorage.getItem("user"));
+  //addition for  creating user id
+  if (!user || !user.id) {
+    throw new Error("User not authenticated");
+  }
+
+  return request(`/todo?user_id=${user.id}`);
 }
 
 export async function createTodo(todoData) {
+  const user = JSON.parse(localStorage.getItem("user"));
+
   return request("/todo", {
     method: "POST",
-    body: JSON.stringify(todoData),
+    body: JSON.stringify({
+      ...todoData,
+      user_id: user?.id,
+    }),
   });
 }
 
