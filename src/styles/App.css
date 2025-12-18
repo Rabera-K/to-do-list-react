@@ -108,6 +108,7 @@
   margin: 0;
   padding: 0;
   box-sizing: inherit;
+  touch-action: manipulation;
 }
 
 html {
@@ -646,7 +647,7 @@ summary::-webkit-details-marker {
   color: #ff6b6b !important;
 }
 #logoutBtn {
-  margin-top: 10px;
+  /* margin-top: 10px; */
   border: none;
   border-radius: 1000px;
   padding: 0.85em 2em;
@@ -658,8 +659,8 @@ summary::-webkit-details-marker {
   cursor: pointer;
   transition: 150ms ease;
   position: fixed;
-  bottom: 50;
-  margin-right: 50;
+  top: 20px;
+  right: 20px;
   z-index: 999;
 }
 #logoutBtn:hover {

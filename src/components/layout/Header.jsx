@@ -35,17 +35,6 @@ function Header({ selectedDate, onCalendarClick, onLogout }) {
           </button>
 
           <ThemeToggle />
-
-          {user && (
-            <button
-              type="button"
-              className="logout-btn"
-              id="logoutBtn"
-              onClick={onLogout}
-            >
-              Logout ({user.name})
-            </button>
-          )}
         </div>
       </div>
     </header>

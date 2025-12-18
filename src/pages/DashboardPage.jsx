@@ -44,19 +44,22 @@ function DashboardPage() {
   useEffect(() => {
     const checkOverdueTasks = () => {
       const now = new Date();
-      todos.forEach((task) => {
-        if (!task.completed && dateUtils.isTaskOverdue(task)) {
-          // You can implement notifications here
-          console.log(`Task overdue: ${task.title}`);
-        }
-      });
+      const overdueTasks = todos.filter(
+        (task) => !task.completed && dateUtils.isTaskOverdue(task)
+      );
+
+      // Only log if there are actually overdue tasks
+      if (overdueTasks.length > 0) {
+        console.log(`Found ${overdueTasks.length} overdue tasks`);
+        // You can implement notifications
+      }
     };
 
     // Check immediately
     checkOverdueTasks();
 
-    // Check every minute
-    const interval = setInterval(checkOverdueTasks, 60000);
+    // Check every 5 minutes
+    const interval = setInterval(checkOverdueTasks, 5 * 60000);
     return () => clearInterval(interval);
   }, [todos]);
 
@@ -151,68 +154,75 @@ function DashboardPage() {
   }
 
   return (
-    <main className="todo-main">
-      <Header
-        selectedDate={selectedDate}
-        onCalendarClick={() => setShowCalendarModal(true)}
-        onLogout={handleLogout}
-      />
+    <>
+      {/* Fixed position logout button */}
+      <button className="logout-btn" id="logoutBtn" onClick={logout}>
+        Logout ({user.name})
+      </button>
 
-      <CalendarMini
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-      />
+      <main className="todo-main">
+        <Header
+          selectedDate={selectedDate}
+          onCalendarClick={() => setShowCalendarModal(true)}
+          onLogout={handleLogout}
+        />
 
-      {/* Active Tasks Section */}
-      <div id="active-tasks">
-        <TodoList
-          todos={sortedActiveTasks}
+        <CalendarMini
+          selectedDate={selectedDate}
+          onDateSelect={setSelectedDate}
+        />
+
+        {/* Active Tasks Section */}
+        <div id="active-tasks">
+          <TodoList
+            todos={sortedActiveTasks}
+            onToggle={toggleTodoCompletion}
+            onDelete={handleDeleteTask}
+            onEdit={handleEditClick}
+          />
+        </div>
+
+        {/* Completed Tasks Section */}
+        <CompletedSection
+          tasks={completedTasks}
           onToggle={toggleTodoCompletion}
           onDelete={handleDeleteTask}
           onEdit={handleEditClick}
+          count={completedTasks.length}
         />
-      </div>
 
-      {/* Completed Tasks Section */}
-      <CompletedSection
-        tasks={completedTasks}
-        onToggle={toggleTodoCompletion}
-        onDelete={handleDeleteTask}
-        onEdit={handleEditClick}
-        count={completedTasks.length}
-      />
+        {/* Empty State */}
+        {filteredTodos.length === 0 && <EmptyState />}
 
-      {/* Empty State */}
-      {filteredTodos.length === 0 && <EmptyState />}
+        {/* Add Task Button */}
+        <AddTodoButton
+          onClick={() => {
+            setEditingTask(null);
+            setSelectedPriority(2);
+            setShowTaskModal(true);
+          }}
+        />
 
-      {/* Add Task Button */}
-      <AddTodoButton
-        onClick={() => {
-          setEditingTask(null);
-          setSelectedPriority(2);
-          setShowTaskModal(true);
-        }}
-      />
+        {/* Task Modal */}
+        <TodoModal
+          isOpen={showTaskModal}
+          onClose={() => {
+            setShowTaskModal(false);
+            setEditingTask(null);
+          }}
+          onSubmit={editingTask ? handleEditTask : handleAddTask}
+          initialTask={editingTask}
+        />
 
-      {/* Task Modal */}
-      <TodoModal
-        isOpen={showTaskModal}
-        onClose={() => {
-          setShowTaskModal(false);
-          setEditingTask(null);
-        }}
-        onSubmit={editingTask ? handleEditTask : handleAddTask}
-        initialTask={editingTask}
-      />
-
-      {/* Calendar Modal */}
-      <CalendarModal
-        isOpen={showCalendarModal}
-        onClose={() => setShowCalendarModal(false)}
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-      />
-    </main>
+        {/* Calendar Modal */}
+        <CalendarModal
+          isOpen={showCalendarModal}
+          onClose={() => setShowCalendarModal(false)}
+          selectedDate={selectedDate}
+          onDateSelect={setSelectedDate}
+        />
+      </main>
+    </>
   );
 }
 export default DashboardPage;
