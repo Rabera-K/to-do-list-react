@@ -1,16 +1,17 @@
+// src/pages/DashboardPage.jsx
 import { useState, useEffect } from 'react';
-// import Header from '../components/layout/Header';
-// import CalendarMini from '../components/calendar/CalendarMini';
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../context/AuthContext';
+import  useTodos  from '../hooks/useTodos';
+import dateUtils  from '../utils/dateUtils';
+import Header from '../components/layout/Header';
+import CalendarMini from '../components/calendar/CalendarMini';
 import TodoList from '../components/todos/TodoList';
 import CompletedSection from '../components/todos/CompletedSection';
 import EmptyState from '../components/todos/EmptyState';
 import AddTodoButton from '../components/todos/AddTodoButton';
 import TodoModal from '../components/todos/TodoModal';
-// import CalendarModal from '../components/calendar/CalendarModal';
-import  useTodos  from '../hooks/useTodos';
-import useAuth from '../hooks/useAuth';
-import  dateUtils  from '../utils/dateUtils';
-// import { useNotification } from '../hooks/useNotification';
+import CalendarModal from '../components/calendar/CalendarModal';
 
 function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -19,34 +20,100 @@ function DashboardPage() {
   const [editingTask, setEditingTask] = useState(null);
   const [selectedPriority, setSelectedPriority] = useState(2);
   
-  const { todos, loading, error, addTodo, updateTodo, deleteTodo, toggleTodoCompletion } = useTodos();
-  const { logout } = useAuth();
+  const { logout, user } = useAuthContext();
+  const { 
+    todos, 
+    loading, 
+    error, 
+    addTodo, 
+    updateTodo, 
+    deleteTodo, 
+    toggleTodoCompletion 
+  } = useTodos();
   
+  const navigate = useNavigate();
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  // Notification system
+  useEffect(() => {
+    const checkOverdueTasks = () => {
+      const now = new Date();
+      todos.forEach((task) => {
+        if (!task.completed && dateUtils.isTaskOverdue(task)) {
+          // You can implement notifications here
+          console.log(`Task overdue: ${task.title}`);
+        }
+      });
+    };
+
+    // Check immediately
+    checkOverdueTasks();
+    
+    // Check every minute
+    const interval = setInterval(checkOverdueTasks, 60000);
+    return () => clearInterval(interval);
+  }, [todos]);
+
   // Filter tasks for selected date
   const filteredTodos = todos.filter(task => 
     dateUtils.isSameDay(new Date(task.date), selectedDate)
   );
   
+  // Separate active and completed tasks
   const activeTasks = filteredTodos.filter(task => !task.completed);
   const completedTasks = filteredTodos.filter(task => task.completed);
   
-  // Overdue tasks calculation
+  // Sort active tasks: overdue first, then others
   const overdueTasks = activeTasks.filter(task => dateUtils.isTaskOverdue(task));
   const nonOverdueTasks = activeTasks.filter(task => !dateUtils.isTaskOverdue(task));
   const sortedActiveTasks = [...overdueTasks, ...nonOverdueTasks];
-  
+
+  // Handlers
   const handleAddTask = async (taskData) => {
-    const todoData = {
-      ...taskData,
-      priority: selectedPriority,
-      date: selectedDate,
-    };
-    
-    await addTodo(todoData);
-    setShowTaskModal(false);
+    try {
+      const todoData = {
+        ...taskData,
+        date: selectedDate,
+        completed: false,
+      };
+      
+      await addTodo(todoData);
+      setShowTaskModal(false);
+    } catch (error) {
+      console.error('Failed to add task:', error);
+      alert('Failed to save task. Please try again.');
+    }
   };
-  
-  const handleEditTask = (taskId) => {
+
+  const handleEditTask = async (taskData) => {
+    try {
+      await updateTodo(editingTask.id, taskData);
+      setShowTaskModal(false);
+      setEditingTask(null);
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      alert('Failed to update task. Please try again.');
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      try {
+        await deleteTodo(taskId);
+      } catch (error) {
+        console.error('Failed to delete task:', error);
+        alert('Failed to delete task. Please try again.');
+      }
+    }
+  };
+
+  const handleEditClick = (taskId) => {
     const task = todos.find(t => t.id === taskId);
     if (task) {
       setEditingTask(task);
@@ -54,27 +121,39 @@ function DashboardPage() {
       setShowTaskModal(true);
     }
   };
-  
-  const handleUpdateTask = async (taskData) => {
-    await updateTodo(editingTask.id, {
-      ...taskData,
-      priority: selectedPriority,
-    });
-    setShowTaskModal(false);
-    setEditingTask(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
-  
-  useNotification(todos); // Your notification system
-  
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  
+
+  if (loading && todos.length === 0) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading your tasks...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <h2>Error Loading Tasks</h2>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <main className="todo-main">
       <Header 
         selectedDate={selectedDate}
         onCalendarClick={() => setShowCalendarModal(true)}
-        onLogout={logout}
+        onLogout={handleLogout}
       />
       
       <CalendarMini 
@@ -82,54 +161,56 @@ function DashboardPage() {
         onDateSelect={setSelectedDate}
       />
       
+      {/* Active Tasks Section */}
       <div id="active-tasks">
         <TodoList 
           todos={sortedActiveTasks}
           onToggle={toggleTodoCompletion}
-          onDelete={deleteTodo}
-          onEdit={handleEditTask}
+          onDelete={handleDeleteTask}
+          onEdit={handleEditClick}
         />
       </div>
       
+      {/* Completed Tasks Section */}
       <CompletedSection 
         tasks={completedTasks}
         onToggle={toggleTodoCompletion}
-        onDelete={deleteTodo}
+        onDelete={handleDeleteTask}
+        onEdit={handleEditClick}
         count={completedTasks.length}
       />
       
+      {/* Empty State */}
       {filteredTodos.length === 0 && <EmptyState />}
       
-      <AddTodoButton onClick={() => {
-        setEditingTask(null);
-        setShowTaskModal(true);
-      }} />
+      {/* Add Task Button */}
+      <AddTodoButton 
+        onClick={() => {
+          setEditingTask(null);
+          setSelectedPriority(2);
+          setShowTaskModal(true);
+        }}
+      />
       
-      {showTaskModal && (
-        <TodoModal
-          task={editingTask}
-          onClose={() => {
-            setShowTaskModal(false);
-            setEditingTask(null);
-          }}
-          onSave={editingTask ? handleUpdateTask : handleAddTask}
-          selectedPriority={selectedPriority}
-          onPriorityChange={setSelectedPriority}
-        />
-      )}
+      {/* Task Modal */}
+      <TodoModal 
+        isOpen={showTaskModal}
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
+        onSubmit={editingTask ? handleEditTask : handleAddTask}
+        initialTask={editingTask}
+      />
       
-      {showCalendarModal && (
-        <CalendarModal
-          selectedDate={selectedDate}
-          onClose={() => setShowCalendarModal(false)}
-          onDateSelect={(date) => {
-            setSelectedDate(date);
-            setShowCalendarModal(false);
-          }}
-        />
-      )}
+      {/* Calendar Modal */}
+      <CalendarModal 
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        selectedDate={selectedDate}
+        onDateSelect={setSelectedDate}
+      />
     </main>
   );
 }
-
 export default DashboardPage;
