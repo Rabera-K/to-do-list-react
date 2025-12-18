@@ -1,18 +1,22 @@
-import {useState, useEffect, useCallback} from 'react';
-import {getTodos, createTodo, updateTodo, deleteTodo } from '../services/todos.js';
-import dateUtils from'../utils/dateUtils';
+import { useState, useEffect, useCallback } from "react";
+import {
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+} from "../services/todos.js";
+import dateUtils from "../utils/dateUtils";
 
-function useTodos(){
-    const[todos, setTodos]=useState([]);
-    const [loading, setLoading]=useState(true);
-    const [error, setError]=useState(null);
+function useTodos() {
+  const [todos, setTodos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  const fetchTodos = useCallback(async () => {
+    try {
+      setLoading(true);
+      const tasksData = await getTodos();
 
-const fetchTodos=useCallback(async () => {
-    try{
-        setLoading(true);
-    const tasksData = await getTodos();
-      
       const transformedTasks = tasksData.map((task) => ({
         ...task,
         completed: task.completed,
@@ -37,18 +41,22 @@ const fetchTodos=useCallback(async () => {
         description: todoData.description,
         priority: todoData.priority,
         completed: false,
-        time: todoData.time ? dateUtils.timeStringToTimestamp(todoData.time, todoData.date) : null,
+        time: todoData.time
+          ? dateUtils.timeStringToTimestamp(todoData.time, todoData.date)
+          : null,
       };
 
       const savedTask = await createTodo(xanoTask);
-      
+
       const newTodo = {
         ...savedTask,
         date: new Date(savedTask.created_at),
-        time: savedTask.time ? dateUtils.timestampToTimeString(savedTask.time) : "",
+        time: savedTask.time
+          ? dateUtils.timestampToTimeString(savedTask.time)
+          : "",
       };
 
-      setTodos(prev => [...prev, newTodo]);
+      setTodos((prev) => [...prev, newTodo]);
       return newTodo;
     } catch (err) {
       setError(err.message);
@@ -60,27 +68,35 @@ const fetchTodos=useCallback(async () => {
     try {
       const xanoUpdates = {};
       if (updates.title !== undefined) xanoUpdates.title = updates.title;
-      if (updates.description !== undefined) xanoUpdates.description = updates.description;
-      if (updates.completed !== undefined) xanoUpdates.completed = updates.completed;
-      if (updates.priority !== undefined) xanoUpdates.priority = updates.priority;
+      if (updates.description !== undefined)
+        xanoUpdates.description = updates.description;
+      if (updates.completed !== undefined)
+        xanoUpdates.completed = updates.completed;
+      if (updates.priority !== undefined)
+        xanoUpdates.priority = updates.priority;
       if (updates.time !== undefined) {
         xanoUpdates.time = updates.time
-          ? dateUtils.timeStringToTimestamp(updates.time, updates.date || new Date())
+          ? dateUtils.timeStringToTimestamp(
+              updates.time,
+              updates.date || new Date()
+            )
           : null;
       }
 
       const updatedTask = await updateTodo(id, xanoUpdates);
-      
+
       const transformedTask = {
         ...updatedTask,
         completed: updatedTask.completed,
         date: new Date(updatedTask.created_at),
-        time: updatedTask.time ? dateUtils.timestampToTimeString(updatedTask.time) : "",
+        time: updatedTask.time
+          ? dateUtils.timestampToTimeString(updatedTask.time)
+          : "",
       };
 
-      setTodos(prev => prev.map(todo => 
-        todo.id === id ? transformedTask : todo
-      ));
+      setTodos((prev) =>
+        prev.map((todo) => (todo.id === id ? transformedTask : todo))
+      );
 
       return transformedTask;
     } catch (err) {
@@ -92,25 +108,28 @@ const fetchTodos=useCallback(async () => {
   const deleteTodoHandler = useCallback(async (id) => {
     try {
       await deleteTodo(id);
-      setTodos(prev => prev.filter(todo => todo.id !== id));
+      setTodos((prev) => prev.filter((todo) => todo.id !== id));
     } catch (err) {
       setError(err.message);
       throw err;
     }
   }, []);
 
-  const toggleTodoCompletion = useCallback(async (id) => {
-    const task = todos.find(t => t.id === id);
-    if (!task) return;
+  const toggleTodoCompletion = useCallback(
+    async (id) => {
+      const task = todos.find((t) => t.id === id);
+      if (!task) return;
 
-    const newCompletedStatus = !task.completed;
-    
-    try {
-      await updateTodo(id, { completed: newCompletedStatus });
-    } catch (err) {
-      console.error("Failed to update todo:", err);
-    }
-  }, [todos, updateTodoHandler]);
+      const newCompletedStatus = !task.completed;
+
+      try {
+        await updateTodoHandler(id, { completed: newCompletedStatus });
+      } catch (err) {
+        console.error("Failed to update todo:", err);
+      }
+    },
+    [todos, updateTodoHandler]
+  );
 
   useEffect(() => {
     fetchTodos();
