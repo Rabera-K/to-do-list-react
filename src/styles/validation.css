@@ -28,7 +28,7 @@ body {
   font-family: "Inter", sans-serif;
   font-weight: 400;
   color: #292828;
-  background-image: url(../assets/light-p.jpg);
+  background-image: url("/light.png");
   background-size: cover;
   min-height: 100vh;
   overflow: hidden;

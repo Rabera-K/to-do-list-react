@@ -29,7 +29,7 @@
   /* background: linear-gradient(to bottom right, #3a2a42 30%, #2d1e35 70%); */
 }
 [data-theme="dark"] body {
-  background-image: url(UI-Inspo/dark.jpg);
+  background-image: url("/dark.png");
   background-size: cover;
 }
 [data-theme="dark"] .todo-main {
@@ -122,7 +122,7 @@ body {
   font-family: "Inter", sans-serif;
   font-weight: 400;
   color: #292828;
-  background-image: url(../assets/light-p.jpg);
+  background-image: url("/light.png");
   background-size: cover;
   height: 100%;
   overflow: auto;
@@ -691,5 +691,7 @@ summary::-webkit-details-marker {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
